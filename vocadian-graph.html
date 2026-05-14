@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocadian Market Analysis Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0d1b2a 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            padding: 10px;
+            transform: scale(0.7);
+            transform-origin: top left;
+            width: 143%;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            padding: 15px 0;
+            margin-bottom: 15px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.6em;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00d4ff, #7b2ff7, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .dashboard-header p {
+            color: #a0a0c0;
+            font-size: 0.8em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(0, 212, 255, 0.5);
+        }
+
+        .stat-value {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #00d4ff;
+            margin-bottom: 3px;
+        }
+
+        .stat-label {
+            font-size: 0.65em;
+            color: #a0a0c0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Top charts row — Bubble + Grouped Bar side by side */
+        .charts-grid-top {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Bottom row — CAGR chart + Table side by side */
+        .charts-grid-bottom {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(123, 47, 247, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .chart-title {
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #00d4ff;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .chart-wrapper {
+            height: 240px;
+            position: relative;
+        }
+
+        .market-table-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(123, 47, 247, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .table-title {
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #00d4ff;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75em;
+        }
+
+        th {
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 7px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #d0d0e0;
+        }
+
+        tr:hover td {
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .rank-badge {
+            background: linear-gradient(135deg, #7b2ff7, #00d4ff);
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75em;
+        }
+
+        .growth-indicator {
+            color: #00ff88;
+            font-weight: 600;
+        }
+
+        .footer-note {
+            text-align: center;
+            color: #606080;
+            font-size: 0.65em;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-header">
+    <h1>🎙️ VOCADIAN — TARGET MARKET ANALYSIS</h1>
+    <p>Addressable Markets · Growth Projections · Strategic Positioning | Source: Grand View Research</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">$87.69B</div>
+        <div class="stat-label">Total Current Market Value</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">$713B+</div>
+        <div class="stat-label">Total Projected Value</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">39%</div>
+        <div class="stat-label">Highest CAGR (AI Voice)</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">6</div>
+        <div class="stat-label">Target Markets</div>
+    </div>
+</div>
+
+<!-- Top Row: Bubble + Grouped Bar -->
+<div class="charts-grid-top">
+    <div class="chart-container">
+        <div class="chart-title">🫧 Market Size Bubble Chart — Current vs Projected (Bubble = CAGR)</div>
+        <div class="chart-wrapper">
+            <canvas id="bubbleChart"></canvas>
+        </div>
+    </div>
+    <div class="chart-container">
+        <div class="chart-title">📊 Current vs Projected Market Size ($B)</div>
+        <div class="chart-wrapper">
+            <canvas id="groupedBarChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Row: CAGR Chart + Table -->
+<div class="charts-grid-bottom">
+    <div class="chart-container">
+        <div class="chart-title">📈 CAGR Comparison by Market (%)</div>
+        <div class="chart-wrapper">
+            <canvas id="barChart"></canvas>
+        </div>
+    </div>
+    <div class="market-table-container">
+        <div class="table-title">📋 Full Market Breakdown — Ranked by CAGR</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Market</th>
+                    <th>Current Value</th>
+                    <th>Projected Value</th>
+                    <th>Target Year</th>
+                    <th>CAGR</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="rank-badge">1</span></td>
+                    <td>AI Voice Agents</td>
+                    <td>$2.54B</td>
+                    <td>$35.24B</td>
+                    <td>2033</td>
+                    <td><span class="growth-indicator">39.0%</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank-badge">2</span></td>
+                    <td>AI Healthcare</td>
+                    <td>$36.67B</td>
+                    <td>$505.59B</td>
+                    <td>2033</td>
+                    <td><span class="growth-indicator">38.9%</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank-badge">3</span></td>
+                    <td>Conversational AI</td>
+                    <td>$11.58B</td>
+                    <td>$41.39B</td>
+                    <td>2030</td>
+                    <td><span class="growth-indicator">23.7%</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank-badge">4</span></td>
+                    <td>Surgical Robots</td>
+                    <td>$6.40B</td>
+                    <td>$25.20B</td>
+                    <td>2030</td>
+                    <td><span class="growth-indicator">18.9%</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank-badge">5</span></td>
+                    <td>Medical Robotics</td>
+                    <td>$25.56B</td>
+                    <td>$76.45B</td>
+                    <td>2030</td>
+                    <td><span class="growth-indicator">16.55%</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank-badge">6</span></td>
+                    <td>Speech Analytics</td>
+                    <td>$4.94B</td>
+                    <td>$17.00B</td>
+                    <td>2031</td>
+                    <td><span class="growth-indicator">14.5%</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="footer-note">
+    All data sourced from Grand View Research · Vocadian competitive differentiation: Prosody + Speech-to-Text Analysis
+</div>
+
+<script>
+    const colors = [
+        'rgba(0, 212, 255, 0.8)',
+        'rgba(123, 47, 247, 0.8)',
+        'rgba(0, 255, 136, 0.8)',
+        'rgba(255, 165, 0, 0.8)',
+        'rgba(255, 99, 132, 0.8)',
+        'rgba(255, 206, 86, 0.8)'
+    ];
+    const borderColors = ['#00d4ff', '#7b2ff7', '#00ff88', '#ffa500', '#ff6384', '#ffce56'];
+
+    // Bubble Chart
+    const bubbleCtx = document.getElementById('bubbleChart').getContext('2d');
+    new Chart(bubbleCtx, {
+        type: 'bubble',
+        data: {
+            datasets: [
+                { label: 'AI Voice Agents',  data: [{ x: 2.54,  y: 35.24,  r: 20 }], backgroundColor: colors[0], borderColor: borderColors[0] },
+                { label: 'AI Healthcare',    data: [{ x: 36.67, y: 505.59, r: 19 }], backgroundColor: colors[1], borderColor: borderColors[1] },
+                { label: 'Conv. AI',         data: [{ x: 11.58, y: 41.39,  r: 12 }], backgroundColor: colors[2], borderColor: borderColors[2] },
+                { label: 'Surgical Robots',  data: [{ x: 6.40,  y: 25.20,  r: 10 }], backgroundColor: colors[3], borderColor: borderColors[3] },
+                { label: 'Medical Robotics', data: [{ x: 25.56, y: 76.45,  r: 8  }], backgroundColor: colors[4], borderColor: borderColors[4] },
+                { label: 'Speech Analytics', data: [{ x: 4.94,  y: 17.00,  r: 7  }], backgroundColor: colors[5], borderColor: borderColors[5] }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#a0a0c0', font: { size: 9 } } }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'Current Value ($B)', color: '#a0a0c0', font: { size: 9 } },
+                    ticks: { color: '#a0a0c0', font: { size: 8 } },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                },
+                y: {
+                    title: { display: true, text: 'Projected Value ($B)', color: '#a0a0c0', font: { size: 9 } },
+                    ticks: { color: '#a0a0c0', font: { size: 8 } },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                }
+            }
+        }
+    });
+
+    // Grouped Bar Chart — Current vs Projected
+    const groupedCtx = document.getElementById('groupedBarChart').getContext('2d');
+    new Chart(groupedCtx, {
+        type: 'bar',
+        data: {
+            labels: ['AI Voice', 'AI Health', 'Conv. AI', 'Surgical', 'Med. Rob.', 'Speech'],
+            datasets: [
+                {
+                    label: 'Current ($B)',
+                    data: [2.54, 36.67, 11.58, 6.40, 25.56, 4.94],
+                    backgroundColor: 'rgba(0, 212, 255, 0.6)',
+                    borderColor: '#00d4ff',
+                    borderWidth: 1,
+                    borderRadius: 4
+                },
+                {
+                    label: 'Projected ($B)',
+                    data: [35.24, 505.59, 41.39, 25.20, 76.45, 17.00],
+                    backgroundColor: 'rgba(123, 47, 247, 0.6)',
+                    borderColor: '#7b2ff7',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#a0a0c0', font: { size: 9 } } }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#a0a0c0', font: { size: 8 } },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                },
+                y: {
+                    title: { display: true, text: 'Value ($B)', color: '#a0a0c0', font: { size: 9 } },
+                    ticks: { color: '#a0a0c0', font: { size: 8 } },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                }
+            }
+        }
+    });
+
+    // CAGR Bar Chart
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: ['AI Voice', 'AI Health', 'Conv. AI', 'Surgical', 'Med. Rob.', 'Speech'],
+            datasets: [{
+                label: 'CAGR (%)',
+                data: [39.0, 38.9, 23.7, 18.9, 16.55, 14.5],
+                backgroundColor: colors,
+                borderColor: borderColors,
+                borderWidth: 1,
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#a0a0c0', font: { size: 8 } },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                },
+                y: {
+                    title: { display: true, text: 'CAGR (%)', color: '#a0a0c0', font: { size: 9 } },
+                    ticks: { color: '#a0a0c0', font: { size: 8 } },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
+```
+
